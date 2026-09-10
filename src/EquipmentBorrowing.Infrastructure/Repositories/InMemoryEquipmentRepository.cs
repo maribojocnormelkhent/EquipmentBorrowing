@@ -14,8 +14,12 @@ public class InMemoryEquipmentRepository : IEquipmentRepository
 
     public Task<Equipment?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var equipment = _equipment.FirstOrDefault(e => e.Id == id);
-        return Task.FromResult(equipment);
+        return Task.FromResult(_equipment.FirstOrDefault(e => e.Id == id));
+    }
+
+    public Task<IReadOnlyList<Equipment>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult((IReadOnlyList<Equipment>)_equipment.ToList());
     }
 
     public Task UpdateAsync(Equipment equipment, CancellationToken cancellationToken = default)
