@@ -39,6 +39,34 @@ var successResult = await service.ExecuteAsync(new BorrowEquipmentRequest(
     ExpectedReturnDate: DateTime.Now.AddDays(7)));
 
 PrintResult(successResult);
+// ---------------------------------------------------------------
+// NEW CASE: successful return of the equipment just borrowed
+// ---------------------------------------------------------------
+Console.WriteLine("\n--- Case 1b: Successful return ---");
+var returnService = new ReturnEquipmentService(borrowingRepository, equipmentRepository);
+
+if (successResult.Borrowing is not null)
+{
+    var returnResult = await returnService.ExecuteAsync(
+        new ReturnEquipmentRequest(successResult.Borrowing.Id));
+
+    if (returnResult.Success)
+        Console.WriteLine($"SUCCESS: Borrowing #{returnResult.Borrowing!.Id} marked as {returnResult.Borrowing.Status}.");
+    else
+        Console.WriteLine($"FAILED: {returnResult.ErrorMessage}");
+}
+
+// Try returning the same borrowing again — should fail
+Console.WriteLine("\n--- Case 1c: Failure — already returned ---");
+if (successResult.Borrowing is not null)
+{
+    var duplicateReturn = await returnService.ExecuteAsync(
+        new ReturnEquipmentRequest(successResult.Borrowing.Id));
+
+    Console.WriteLine(duplicateReturn.Success
+        ? "Unexpected success"
+        : $"FAILED: {duplicateReturn.ErrorMessage}");
+}
 
 // ---------------------------------------------------------------
 // FAILURE CASE 1: equipment already unavailable

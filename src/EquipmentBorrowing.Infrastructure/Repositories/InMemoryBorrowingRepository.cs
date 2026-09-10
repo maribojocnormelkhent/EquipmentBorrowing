@@ -22,4 +22,19 @@ public class InMemoryBorrowingRepository : IBorrowingRepository
 
         return Task.FromResult(count);
     }
+
+    public Task<Borrowing?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var borrowing = _borrowings.FirstOrDefault(b => b.Id == id);
+        return Task.FromResult(borrowing);
+    }
+
+    public Task UpdateAsync(Borrowing borrowing, CancellationToken cancellationToken = default)
+    {
+        var index = _borrowings.FindIndex(b => b.Id == borrowing.Id);
+        if (index >= 0)
+            _borrowings[index] = borrowing;
+
+        return Task.CompletedTask;
+    }
 }
