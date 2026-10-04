@@ -3,19 +3,10 @@ using EquipmentBorrowing.Domain;
 
 namespace EquipmentBorrowing.Application.Services;
 
-/// <summary>
-/// Coordinates the "Borrow Equipment" use case.
-///
-/// This class does NOT talk to a database, does NOT contain SQL, and does
-/// NOT contain any user-interface code. It only depends on repository
-/// INTERFACES, which are supplied through the constructor
-/// (manual dependency injection — see Part F of the lab).
-/// </summary>
+
 public class BorrowEquipmentService
 {
-    // Business rule constant for this use case. It lives here, not on the
-    // Student class, because it is a rule about the borrowing PROCESS, not
-    // a fact about the student itself.
+ 
     private const int MaxActiveBorrowingsPerStudent = 3;
 
     private readonly IStudentRepository _studentRepository;
@@ -64,7 +55,7 @@ public class BorrowEquipmentService
 
         // 6. All rules satisfied — create the borrowing record.
         var borrowing = new Borrowing(
-            id: new Random().Next(1000, 999_999),
+            id: 0,
             studentId: request.StudentId,
             equipmentId: request.EquipmentId,
             dateBorrowed: DateTime.Now,
