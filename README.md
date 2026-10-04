@@ -212,3 +212,105 @@ available again. The active borrowings list is reloaded afterward.
    and all three interfaces), and every View and ViewModel — only the
    Infrastructure implementations and the composition root registrations
    would change.
+
+   
+## Relational Database Design
+
+See docs/database-diagram.png.
+
+Students(Id PK, Name, IsAllowedToBorrow)
+Equipment(Id PK, Name, IsAvailable)
+Borrowings(Id PK, StudentId FK -> Students.Id, EquipmentId FK -> Equipment.Id,
+           DateBorrowed, ExpectedReturnDate, Status)
+
+A Student has many Borrowings. A piece of Equipment has many Borrowings over
+time. Each Borrowing references exactly one Student and one Equipment record
+instead of repeating their details, avoiding duplicate data.
+
+## SQLite and EF Core
+
+Microsoft.EntityFrameworkCore.Sqlite and Microsoft.EntityFrameworkCore.Design
+were added to the Infrastructure and Desktop projects. The connection string
+and DbContext registration live in the Desktop project's composition root
+(App.axaml.cs) — the only place in the solution aware that SQLite is the
+storage mechanism in use.
+
+## DbContext
+
+EquipmentBorrowingDbContext exposes the three DbSets (Students, Equipment,
+Borrowings) and applies the entity configurations found in
+Persistence/Configurations. It is only ever constructed and used inside
+Infrastructure repository classes — never from a View or ViewModel.
+
+## Repository Transition
+
+IStudentRepository, IEquipmentRepository, and IBorrowingRepository are
+unchanged from Lab 1. InMemoryStudentRepository, InMemoryEquipmentRepository,
+and InMemoryBorrowingRepository still exist and are still used by
+ConsoleDemo and Tests. The Desktop application's composition root now
+registers EfStudentRepository, EfEquipmentRepository, and
+EfBorrowingRepository instead, each backed by EquipmentBorrowingDbContext
+and SQLite.
+
+## Migration Process
+
+Run from Package Manager Console with Default project set to
+EquipmentBorrowing.Infrastructure and Startup project set to
+EquipmentBorrowing.Desktop:
+
+Add-Migration InitialCreate
+Update-Database
+
+## Generated SQL
+
+LINQ Query:
+_context.Equipment.AsNoTracking().ToListAsync();
+
+Generated SQL:
+(paste what Part 14 printed here)
+
+Explanation:
+Selects every column from the Equipment table with no tracking, since this
+list is only displayed, not modified.
+
+LINQ Query:
+_context.Borrowings.AsNoTracking().Where(b => b.Status == BorrowingStatus.Active).ToListAsync();
+
+Generated SQL:
+(paste what Part 14 printed here)
+
+Explanation:
+Filters Borrowings down to rows where Status equals the stored string value
+for Active.
+
+## Persistence Demonstration
+
+A borrowing was created, the application was fully closed, and on relaunch
+the Active Borrowings list still showed the same record, confirming data
+survives beyond the application's runtime. The same was verified after a
+return operation.
+
+## Architectural Reflection
+
+1. Why did the application not need to be completely rewritten when SQLite
+   was introduced? Because Domain and Application only ever depended on
+   repository interfaces, not on how data was stored.
+2. Why should the ViewModel not use DbContext directly? It would bypass the
+   Application layer's business rules and tie presentation code to a
+   specific storage technology.
+3. What responsibility does the repository implementation now perform? It
+   translates interface calls into EF Core queries and commands against
+   SQLite.
+4. What is the purpose of an EF Core migration? It generates and applies the
+   database schema from the C# entity configuration, keeping the schema
+   reproducible and version controlled.
+5. Why are foreign keys important in the borrowing database? They guarantee
+   a Borrowing can never reference a Student or Equipment record that
+   doesn't exist.
+6. Why can a read-only query benefit from AsNoTracking()? EF Core skips
+   change-tracking overhead for data that will only be displayed, not saved.
+7. What would happen to the rest of the application if the SQLite
+   implementation were replaced later by another database provider? Only
+   the Infrastructure implementations and the composition root registration
+   would change; Domain, Application, Views, and ViewModels would remain the
+   same.
