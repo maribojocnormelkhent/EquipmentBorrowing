@@ -1,18 +1,22 @@
-﻿using Avalonia;
+﻿using System;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using EquipmentBorrowing.Application.Interfaces;
 using EquipmentBorrowing.Application.Services;
 using EquipmentBorrowing.Desktop.ViewModels;
-using EquipmentBorrowing.Domain;
+using EquipmentBorrowing.Infrastructure;
+using EquipmentBorrowing.Infrastructure.Persistence;
 using EquipmentBorrowing.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
 
 namespace EquipmentBorrowing.Desktop;
 
 public partial class App : Avalonia.Application
 {
+    private IServiceProvider? _serviceProvider;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -24,9 +28,13 @@ public partial class App : Avalonia.Application
         {
             var services = new ServiceCollection();
             ConfigureServices(services);
-            var provider = services.BuildServiceProvider();
+            _serviceProvider = services.BuildServiceProvider();
 
-            var mainWindowViewModel = provider.GetRequiredService<MainWindowViewModel>();
+            var dbContext = _serviceProvider.GetRequiredService<EquipmentBorrowingDbContext>();
+            dbContext.Database.Migrate();
+            DatabaseSeeder.SeedAsync(dbContext).GetAwaiter().GetResult();
+
+            var mainWindowViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
 
             desktop.MainWindow = new MainWindow
             {
@@ -39,24 +47,15 @@ public partial class App : Avalonia.Application
 
     private static void ConfigureServices(ServiceCollection services)
     {
-        // Seed data, kept as singletons so state (who borrowed what) is
-        // preserved as the user navigates between views.
-        var seedStudents = new List<Student>
-        {
-            new Student(1, "Juan Dela Cruz", isAllowedToBorrow: true),
-            new Student(2, "Maria Santos", isAllowedToBorrow: false),
-        };
+        const string connectionString = "Data Source=equipmentborrowing.db";
 
-        var seedEquipment = new List<Equipment>
-        {
-            new Equipment(100, "Digital Multimeter", isAvailable: true),
-            new Equipment(101, "Oscilloscope", isAvailable: true),
-            new Equipment(102, "Function Generator", isAvailable: true),
-        };
+        services.AddDbContext<EquipmentBorrowingDbContext>(options =>
+            options.UseSqlite(connectionString)
+                   .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information));
 
-        services.AddSingleton<IStudentRepository>(new InMemoryStudentRepository(seedStudents));
-        services.AddSingleton<IEquipmentRepository>(new InMemoryEquipmentRepository(seedEquipment));
-        services.AddSingleton<IBorrowingRepository, InMemoryBorrowingRepository>();
+        services.AddScoped<IStudentRepository, EfStudentRepository>();
+        services.AddScoped<IEquipmentRepository, EfEquipmentRepository>();
+        services.AddScoped<IBorrowingRepository, EfBorrowingRepository>();
 
         services.AddTransient<BorrowEquipmentService>();
         services.AddTransient<ReturnEquipmentService>();
