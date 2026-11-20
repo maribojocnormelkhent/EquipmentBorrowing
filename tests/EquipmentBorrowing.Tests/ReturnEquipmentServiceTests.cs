@@ -11,12 +11,12 @@ public class ReturnEquipmentServiceTests
     {
         var studentRepository = new InMemoryStudentRepository(new[]
         {
-            new Student(1, "Allowed Student", isAllowedToBorrow: true),
+            new Student(1, "Allowed Student", "S-001", isAllowedToBorrow: true),
         });
 
         var equipmentRepository = new InMemoryEquipmentRepository(new[]
         {
-            new Equipment(100, "Multimeter", isAvailable: true),
+            new Equipment(100, "Multimeter", "EQ-100", isAvailable: true),
         });
 
         var borrowingRepository = new InMemoryBorrowingRepository();

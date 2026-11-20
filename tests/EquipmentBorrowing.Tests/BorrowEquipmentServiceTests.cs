@@ -13,14 +13,14 @@ public class BorrowEquipmentServiceTests
     {
         var studentRepository = new InMemoryStudentRepository(new[]
         {
-            new Student(1, "Allowed Student", isAllowedToBorrow: true),
-            new Student(2, "Suspended Student", isAllowedToBorrow: false),
+            new Student(1, "Allowed Student", "S-001", isAllowedToBorrow: true),
+            new Student(2, "Suspended Student", "S-002", isAllowedToBorrow: false),
         });
 
         equipmentRepository = new InMemoryEquipmentRepository(new[]
         {
-            new Equipment(100, "Multimeter", isAvailable: true),
-            new Equipment(101, "Oscilloscope", isAvailable: false),
+            new Equipment(100, "Multimeter", "EQ-100", isAvailable: true),
+            new Equipment(101, "Oscilloscope", "EQ-101", isAvailable: false),
         });
 
         borrowingRepository = new InMemoryBorrowingRepository();

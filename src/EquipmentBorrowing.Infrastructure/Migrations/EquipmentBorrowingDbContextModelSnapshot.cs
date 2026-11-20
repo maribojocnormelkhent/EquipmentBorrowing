@@ -4,6 +4,7 @@ using EquipmentBorrowing.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -15,74 +16,138 @@ namespace EquipmentBorrowing.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "10.0.15")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("EquipmentBorrowing.Domain.Borrowing", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
-                    b.Property<DateTime>("DateBorrowed")
-                        .HasColumnType("TEXT");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly?>("ActualReturnDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("DateBorrowed")
+                        .HasColumnType("date");
 
                     b.Property<int>("EquipmentId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
-                    b.Property<DateTime>("ExpectedReturnDate")
-                        .HasColumnType("TEXT");
+                    b.Property<DateOnly>("ExpectedReturnDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<int>("StudentId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EquipmentId");
+                    b.HasIndex("EquipmentId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Borrowings_EquipmentId_Active")
+                        .HasFilter("\"Status\" = 'Active'");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("EquipmentId", "DateBorrowed");
 
-                    b.ToTable("Borrowings", (string)null);
+                    b.HasIndex("StudentId", "Status");
+
+                    b.ToTable("Borrowings", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Borrowings_ActualNotBeforeBorrowed", "\"ActualReturnDate\" IS NULL OR \"ActualReturnDate\" >= \"DateBorrowed\"");
+
+                            t.HasCheckConstraint("CK_Borrowings_ExpectedAfterBorrowed", "\"ExpectedReturnDate\" > \"DateBorrowed\"");
+
+                            t.HasCheckConstraint("CK_Borrowings_StatusMatchesReturnDate", "(\"Status\" = 'Active' AND \"ActualReturnDate\" IS NULL) OR (\"Status\" = 'Returned' AND \"ActualReturnDate\" IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("EquipmentBorrowing.Domain.Equipment", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Identifier")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("citext");
 
                     b.Property<bool>("IsAvailable")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(150)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Equipment", (string)null);
+                    b.HasIndex("Identifier")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Equipment_Identifier");
+
+                    b.ToTable("Equipment", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Equipment_Identifier_Normalized", "char_length(\"Identifier\") > 0 AND \"Identifier\" = btrim(\"Identifier\")");
+
+                            t.HasCheckConstraint("CK_Equipment_Name_NotBlank", "char_length(btrim(\"Name\")) > 0");
+                        });
                 });
 
             modelBuilder.Entity("EquipmentBorrowing.Domain.Student", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Contact")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<bool>("IsAllowedToBorrow")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("StudentNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("citext");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Students", (string)null);
+                    b.HasIndex("StudentNumber")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Students_StudentNumber");
+
+                    b.ToTable("Students", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Students_Name_NotBlank", "char_length(btrim(\"Name\")) > 0");
+
+                            t.HasCheckConstraint("CK_Students_StudentNumber_Normalized", "char_length(\"StudentNumber\") > 0 AND \"StudentNumber\" = btrim(\"StudentNumber\")");
+                        });
                 });
 
             modelBuilder.Entity("EquipmentBorrowing.Domain.Borrowing", b =>

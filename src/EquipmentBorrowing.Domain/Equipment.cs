@@ -1,31 +1,40 @@
 namespace EquipmentBorrowing.Domain;
 
-/// <summary>
-/// Represents a piece of borrowable laboratory equipment.
-///
-/// Responsibility: identity information and current availability.
-///
-/// NOT the responsibility of this class: knowing who currently has it, or
-/// enforcing borrowing limits — that belongs to the Borrowing model and the
-/// application service that coordinates the use case.
-/// </summary>
 public class Equipment
 {
     public int Id { get; }
-    public string Name { get; }
+    public string Identifier { get; private set; }
+    public string Name { get; private set; }
+    public string? Description { get; private set; }
     public bool IsAvailable { get; private set; }
 
-    public Equipment(int id, string name, bool isAvailable = true)
+    public Equipment(int id, string name, string identifier, bool isAvailable = true, string? description = null)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Equipment name is required.", nameof(name));
-
         Id = id;
-        Name = name;
+        Identifier = Required(identifier, "Equipment identifier is required.", nameof(identifier));
+        Name = Required(name, "Equipment name is required.", nameof(name));
+        Description = Optional(description);
         IsAvailable = isAvailable;
+    }
+
+    public void UpdateDetails(string identifier, string name, string? description)
+    {
+        Identifier = Required(identifier, "Equipment identifier is required.", nameof(identifier));
+        Name = Required(name, "Equipment name is required.", nameof(name));
+        Description = Optional(description);
     }
 
     public void MarkBorrowed() => IsAvailable = false;
 
     public void MarkReturned() => IsAvailable = true;
+
+    private static string Required(string? value, string message, string paramName)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            throw new ArgumentException(message, paramName);
+        return value.Trim();
+    }
+
+    private static string? Optional(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

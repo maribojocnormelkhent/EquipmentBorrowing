@@ -1,0 +1,32 @@
+-- Basic Retrieval
+SELECT * FROM Equipment;
+
+-- Filtering
+SELECT *
+FROM Equipment
+WHERE IsAvailable = 1;
+
+-- Join
+SELECT
+    s.Name AS Student,
+    e.Name AS Equipment,
+    b.DateBorrowed AS Borrowed,
+    b.ExpectedReturnDate AS Due
+FROM Borrowings b
+JOIN Students s ON b.StudentId = s.Id
+JOIN Equipment e ON b.EquipmentId = e.Id
+WHERE b.Status = 'Active';
+
+-- Aggregate
+SELECT
+    s.Name AS Student,
+    COUNT(*) AS ActiveBorrowings
+FROM Borrowings b
+JOIN Students s ON b.StudentId = s.Id
+WHERE b.Status = 'Active'
+GROUP BY s.Name;
+
+-- Update
+UPDATE Equipment
+SET IsAvailable = 0
+WHERE Id = 100;

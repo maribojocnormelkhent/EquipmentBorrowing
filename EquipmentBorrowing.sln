@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.9.12120.119 stable
+VisualStudioVersion = 18.9.12120.119
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EquipmentBorrowing.Domain", "src\EquipmentBorrowing.Domain\EquipmentBorrowing.Domain.csproj", "{40D42D9F-6ED3-4179-85FB-E78F69EF57BF}"
 EndProject
@@ -13,6 +13,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EquipmentBorrowing.Tests", "tests\EquipmentBorrowing.Tests\EquipmentBorrowing.Tests.csproj", "{3722AB6C-D092-4175-AC0E-44F01D6FB5ED}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EquipmentBorrowing.Desktop", "src\EquipmentBorrowing.Desktop\EquipmentBorrowing.Desktop.csproj", "{3285FA57-BB0F-4184-BF15-D20593B02DD5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{853F5E02-973C-48A1-969D-7AA5C0C127E2}"
+	ProjectSection(SolutionItems) = preProject
+		docs\database-queries.sql.txt = docs\database-queries.sql.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

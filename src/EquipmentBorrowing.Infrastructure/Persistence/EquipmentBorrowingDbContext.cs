@@ -16,6 +16,7 @@ public class EquipmentBorrowingDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("citext");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(EquipmentBorrowingDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }

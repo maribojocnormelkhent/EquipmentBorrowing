@@ -9,7 +9,9 @@ using EquipmentBorrowing.Infrastructure;
 using EquipmentBorrowing.Infrastructure.Persistence;
 using EquipmentBorrowing.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 
 namespace EquipmentBorrowing.Desktop;
 
@@ -26,13 +28,20 @@ public partial class App : Avalonia.Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            // User-secrets first, then environment variables (added last, so they override).
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<App>(optional: true)
+                .AddEnvironmentVariables()
+                .Build();
+
             var services = new ServiceCollection();
-            ConfigureServices(services);
+            ConfigureServices(services, configuration);
             _serviceProvider = services.BuildServiceProvider();
 
+            // Migrations are NOT applied here. Run them explicitly with `dotnet ef database update`
+            // (see README). The seeder only inserts data when the database is empty.
             var dbContext = _serviceProvider.GetRequiredService<EquipmentBorrowingDbContext>();
-            dbContext.Database.Migrate();
-            DatabaseSeeder.SeedAsync(dbContext).GetAwaiter().GetResult();
+            Task.Run(() => DatabaseSeeder.SeedAsync(dbContext)).GetAwaiter().GetResult();
 
             var mainWindowViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
 
@@ -45,13 +54,16 @@ public partial class App : Avalonia.Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    private static void ConfigureServices(ServiceCollection services)
+    private static void ConfigureServices(ServiceCollection services, IConfiguration configuration)
     {
-        const string connectionString = "Data Source=equipmentborrowing.db";
+        var connectionString = configuration.GetConnectionString("EquipmentBorrowing")
+            ?? throw new InvalidOperationException(
+                "Missing connection string 'EquipmentBorrowing'. " +
+                "Set it with dotnet user-secrets or the ConnectionStrings__EquipmentBorrowing " +
+                "environment variable (see README).");
 
         services.AddDbContext<EquipmentBorrowingDbContext>(options =>
-            options.UseSqlite(connectionString)
-                   .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information));
+            options.UseNpgsql(connectionString));
 
         services.AddScoped<IStudentRepository, EfStudentRepository>();
         services.AddScoped<IEquipmentRepository, EfEquipmentRepository>();

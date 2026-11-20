@@ -8,14 +8,14 @@ using EquipmentBorrowing.Infrastructure.Repositories;
 
 var students = new List<Student>
 {
-    new Student(id: 1, name: "Juan Dela Cruz", isAllowedToBorrow: true),
-    new Student(id: 2, name: "Maria Santos", isAllowedToBorrow: false), // suspended student
+    new Student(id: 1, name: "Juan Dela Cruz", studentNumber: "S-001", isAllowedToBorrow: true),
+    new Student(id: 2, name: "Maria Santos", studentNumber: "S-002", isAllowedToBorrow: false), // suspended student
 };
 
 var equipment = new List<Equipment>
 {
-    new Equipment(id: 100, name: "Digital Multimeter", isAvailable: true),
-    new Equipment(id: 101, name: "Oscilloscope", isAvailable: false), // already borrowed
+    new Equipment(id: 100, name: "Digital Multimeter", identifier: "EQ-100", isAvailable: true),
+    new Equipment(id: 101, name: "Oscilloscope", identifier: "EQ-101", isAvailable: false), // already borrowed
 };
 
 var studentRepository = new InMemoryStudentRepository(students);
