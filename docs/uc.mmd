@@ -1,0 +1,44 @@
+flowchart LR
+  A(["Laboratory Staff /<br/>Equipment Custodian<br/>(primary actor)"])
+  DB[("PostgreSQL<br/>(supporting system)")]
+  subgraph SYS["Campus Equipment Borrowing System"]
+    subgraph CAT["Equipment catalog"]
+      direction TB
+      UC01(["UC-01 View Equipment Catalog"])
+      UC02(["UC-02 Find Available Equipment"])
+    end
+    subgraph BOR["Borrowing"]
+      direction TB
+      UC03(["UC-03 Borrow Equipment"])
+      UC04(["UC-04 View Active Borrowings"])
+      UC05(["UC-05 Return Equipment"])
+      UC06(["UC-06 Check Out Multiple Equipment Items"])
+    end
+    subgraph HIS["Histories and queries"]
+      direction TB
+      UC07(["UC-07 View Student Borrowing History"])
+      UC08(["UC-08 View Equipment Borrowing History"])
+      UC09(["UC-09 Search, Filter, and Sort Borrowings"])
+    end
+    subgraph STU["Student management"]
+      direction TB
+      UC12(["UC-12 Register Student"])
+      UC13(["UC-13 Update Student Information"])
+      UC14(["UC-14 Change Student Borrowing Eligibility"])
+    end
+    subgraph EQP["Equipment management"]
+      direction TB
+      UC15(["UC-15 Register Equipment"])
+      UC16(["UC-16 Update Equipment Information"])
+    end
+  end
+  A --- CAT
+  A --- BOR
+  A --- HIS
+  A --- STU
+  A --- EQP
+  CAT --- DB
+  BOR --- DB
+  HIS --- DB
+  STU --- DB
+  EQP --- DB
