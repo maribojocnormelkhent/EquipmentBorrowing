@@ -1,0 +1,19 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:EquipmentBorrowing.Application.Services"
+             x:Class="EquipmentBorrowing.Desktop.Views.BorrowingCard"
+             x:DataType="app:BorrowingDetail">
+  <Border Padding="8" Margin="0,2" BorderThickness="1" BorderBrush="Gray" CornerRadius="4">
+    <StackPanel>
+      <TextBlock FontWeight="Bold" Text="{Binding EquipmentName}"/>
+      <TextBlock FontSize="11" Text="{Binding EquipmentIdentifier, StringFormat='Item ID: {0}'}"/>
+      <TextBlock FontSize="11" Text="{Binding StudentName, StringFormat='Student: {0}'}"/>
+      <TextBlock FontSize="11" Text="{Binding StudentNumber, StringFormat='Student number: {0}'}"/>
+      <TextBlock FontSize="11" Text="{Binding DateBorrowed, StringFormat='Checked out: {0:yyyy-MM-dd}'}"/>
+      <TextBlock FontSize="11" Text="{Binding ExpectedReturnDate, StringFormat='Expected return: {0:yyyy-MM-dd}'}"/>
+      <TextBlock FontSize="11"
+                 Text="{Binding ActualReturnDate, StringFormat='Returned: {0:yyyy-MM-dd}', TargetNullValue='Not returned yet'}"/>
+      <TextBlock FontSize="11" FontWeight="Bold" Text="{Binding Status, StringFormat='Status: {0}'}"/>
+    </StackPanel>
+  </Border>
+</UserControl>

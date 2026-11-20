@@ -90,6 +90,8 @@ public partial class App : Avalonia.Application
 
         services.AddScoped<CheckOutMultipleService>();
         services.AddSingleton<IFaultInjector, EnvironmentFaultInjector>();
+        services.AddScoped<IBorrowingQueryRepository, EfBorrowingQueryRepository>();
+        services.AddScoped<BorrowingQueryService>();
 
         services.AddSingleton<IUseCaseExecutor, UseCaseExecutor>();
 
@@ -97,6 +99,8 @@ public partial class App : Avalonia.Application
         services.AddTransient<BorrowingsViewModel>();
         services.AddTransient<StudentsViewModel>();
         services.AddTransient<EquipmentManagementViewModel>();
+        services.AddTransient<BorrowingSearchViewModel>();
+        services.AddTransient<HistoryViewModel>();
         services.AddSingleton<MainWindowViewModel>();
     }
 }

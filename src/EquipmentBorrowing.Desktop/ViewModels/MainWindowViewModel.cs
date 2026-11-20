@@ -8,6 +8,8 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly EquipmentViewModel _equipmentViewModel;
     private readonly BorrowingsViewModel _borrowingsViewModel;
+    private readonly BorrowingSearchViewModel _borrowingSearchViewModel;
+    private readonly HistoryViewModel _historyViewModel;
     private readonly StudentsViewModel _studentsViewModel;
     private readonly EquipmentManagementViewModel _equipmentManagementViewModel;
 
@@ -17,11 +19,15 @@ public partial class MainWindowViewModel : ObservableObject
     public MainWindowViewModel(
         EquipmentViewModel equipmentViewModel,
         BorrowingsViewModel borrowingsViewModel,
+        BorrowingSearchViewModel borrowingSearchViewModel,
+        HistoryViewModel historyViewModel,
         StudentsViewModel studentsViewModel,
         EquipmentManagementViewModel equipmentManagementViewModel)
     {
         _equipmentViewModel = equipmentViewModel;
         _borrowingsViewModel = borrowingsViewModel;
+        _borrowingSearchViewModel = borrowingSearchViewModel;
+        _historyViewModel = historyViewModel;
         _studentsViewModel = studentsViewModel;
         _equipmentManagementViewModel = equipmentManagementViewModel;
         CurrentViewModel = _equipmentViewModel;
@@ -39,6 +45,20 @@ public partial class MainWindowViewModel : ObservableObject
     {
         CurrentViewModel = _borrowingsViewModel;
         await _borrowingsViewModel.LoadAsync();
+    }
+
+    [RelayCommand]
+    private async Task ShowBorrowingSearchAsync()
+    {
+        CurrentViewModel = _borrowingSearchViewModel;
+        await _borrowingSearchViewModel.LoadAsync();
+    }
+
+    [RelayCommand]
+    private async Task ShowHistoryAsync()
+    {
+        CurrentViewModel = _historyViewModel;
+        await _historyViewModel.LoadAsync();
     }
 
     [RelayCommand]

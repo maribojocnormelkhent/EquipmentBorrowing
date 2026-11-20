@@ -1,0 +1,77 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EquipmentBorrowing.Desktop.ViewModels"
+             xmlns:views="using:EquipmentBorrowing.Desktop.Views"
+             x:Class="EquipmentBorrowing.Desktop.Views.HistoryView"
+             x:DataType="vm:HistoryViewModel">
+  <Grid RowDefinitions="Auto,*" Margin="16">
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
+      <TextBlock Text="Borrowing Histories" FontSize="20" FontWeight="Bold"/>
+      <Button Content="Reload" Command="{Binding ReloadCommand}"/>
+    </StackPanel>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,*">
+      <!-- UC-07: student history -->
+      <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,*" Margin="0,0,8,0">
+        <TextBlock Grid.Row="0" Text="Student history" FontWeight="Bold" Margin="0,0,0,4"/>
+        <ComboBox Grid.Row="1" ItemsSource="{Binding Students}" SelectedItem="{Binding SelectedStudent}"
+                  PlaceholderText="Select a student" HorizontalAlignment="Stretch">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="{Binding StudentNumber}"/>
+                <TextBlock Text="-"/>
+                <TextBlock Text="{Binding Name}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <StackPanel Grid.Row="2" Margin="0,6">
+          <TextBlock Text="Loading..." IsVisible="{Binding IsStudentLoading}"/>
+          <TextBlock Text="{Binding StudentMessage}" Foreground="OrangeRed"
+                     IsVisible="{Binding StudentMessageIsError}" TextWrapping="Wrap"/>
+          <TextBlock Text="{Binding StudentMessage}" Foreground="Gray"
+                     IsVisible="{Binding !StudentMessageIsError}" TextWrapping="Wrap"/>
+        </StackPanel>
+        <ListBox Grid.Row="3" ItemsSource="{Binding StudentRecords}">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <views:BorrowingCard/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+
+      <!-- UC-08: equipment history -->
+      <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,*" Margin="8,0,0,0">
+        <TextBlock Grid.Row="0" Text="Equipment history" FontWeight="Bold" Margin="0,0,0,4"/>
+        <ComboBox Grid.Row="1" ItemsSource="{Binding EquipmentItems}" SelectedItem="{Binding SelectedEquipment}"
+                  PlaceholderText="Select an item" HorizontalAlignment="Stretch">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="{Binding Identifier}"/>
+                <TextBlock Text="-"/>
+                <TextBlock Text="{Binding Name}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <StackPanel Grid.Row="2" Margin="0,6">
+          <TextBlock Text="Loading..." IsVisible="{Binding IsEquipmentLoading}"/>
+          <TextBlock Text="{Binding EquipmentMessage}" Foreground="OrangeRed"
+                     IsVisible="{Binding EquipmentMessageIsError}" TextWrapping="Wrap"/>
+          <TextBlock Text="{Binding EquipmentMessage}" Foreground="Gray"
+                     IsVisible="{Binding !EquipmentMessageIsError}" TextWrapping="Wrap"/>
+        </StackPanel>
+        <ListBox Grid.Row="3" ItemsSource="{Binding EquipmentRecords}">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <views:BorrowingCard/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>

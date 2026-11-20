@@ -1,9 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EquipmentBorrowing.Application.Exceptions;
-using EquipmentBorrowing.Application.Interfaces;
 using EquipmentBorrowing.Application.Services;
-using EquipmentBorrowing.Domain;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,13 +13,19 @@ public partial class BorrowingsViewModel : ObservableObject
 {
     private readonly IUseCaseExecutor _executor;
 
-    public ObservableCollection<Borrowing> ActiveBorrowings { get; } = new();
+    public ObservableCollection<BorrowingDetail> ActiveBorrowings { get; } = new();
 
     [ObservableProperty]
-    private Borrowing? selectedBorrowing;
+    private BorrowingDetail? selectedBorrowing;
 
     [ObservableProperty]
     private string? statusMessage;
+
+    [ObservableProperty]
+    private string? emptyMessage;
+
+    [ObservableProperty]
+    private bool isLoading;
 
     public BorrowingsViewModel(IUseCaseExecutor executor)
     {
@@ -30,19 +34,34 @@ public partial class BorrowingsViewModel : ObservableObject
 
     public async Task LoadAsync()
     {
+        IsLoading = true;
+        EmptyMessage = null;
         try
         {
-            var items = await _executor.ExecuteAsync<IBorrowingRepository, IReadOnlyList<Borrowing>>(
-                r => r.GetActiveBorrowingsAsync());
+            var items = await _executor.ExecuteAsync<BorrowingQueryService, IReadOnlyList<BorrowingDetail>>(
+                s => s.GetActiveAsync());
 
             ActiveBorrowings.Clear();
-            foreach (var borrowing in items)
-                ActiveBorrowings.Add(borrowing);
+            foreach (var item in items)
+                ActiveBorrowings.Add(item);
+
+            EmptyMessage = items.Count == 0 ? "No active borrowings." : null;
         }
         catch (Exception)
         {
             StatusMessage = "Could not load borrowings from the database. Check the connection and try again.";
         }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ReloadAsync()
+    {
+        StatusMessage = null;
+        await LoadAsync();
     }
 
     [RelayCommand]
