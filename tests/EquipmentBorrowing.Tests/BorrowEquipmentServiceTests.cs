@@ -25,7 +25,7 @@ public class BorrowEquipmentServiceTests
 
         borrowingRepository = new InMemoryBorrowingRepository();
 
-        return new BorrowEquipmentService(studentRepository, equipmentRepository, borrowingRepository);
+        return new BorrowEquipmentService(studentRepository, equipmentRepository, borrowingRepository, new InMemoryUnitOfWork());
     }
 
     [Fact]

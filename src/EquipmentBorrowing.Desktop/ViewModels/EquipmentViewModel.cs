@@ -1,23 +1,19 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using EquipmentBorrowing.Application.Exceptions;
 using EquipmentBorrowing.Application.Interfaces;
 using EquipmentBorrowing.Application.Services;
 using EquipmentBorrowing.Domain;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace EquipmentBorrowing.Desktop.ViewModels;
 
-/// <summary>
-/// Presentation state for the Equipment area. Collects input and calls
-/// BorrowEquipmentService — it does NOT re-implement any borrowing rule.
-/// </summary>
 public partial class EquipmentViewModel : ObservableObject
 {
-    private readonly IEquipmentRepository _equipmentRepository;
-    private readonly IStudentRepository _studentRepository;
-    private readonly BorrowEquipmentService _borrowEquipmentService;
+    private readonly IUseCaseExecutor _executor;
 
     public ObservableCollection<Equipment> EquipmentItems { get; } = new();
     public ObservableCollection<Student> Students { get; } = new();
@@ -34,31 +30,37 @@ public partial class EquipmentViewModel : ObservableObject
     [ObservableProperty]
     private string? statusMessage;
 
-    public EquipmentViewModel(
-        IEquipmentRepository equipmentRepository,
-        IStudentRepository studentRepository,
-        BorrowEquipmentService borrowEquipmentService)
+    public EquipmentViewModel(IUseCaseExecutor executor)
     {
-        _equipmentRepository = equipmentRepository;
-        _studentRepository = studentRepository;
-        _borrowEquipmentService = borrowEquipmentService;
+        _executor = executor;
     }
 
     public async Task LoadAsync()
     {
-        EquipmentItems.Clear();
-        foreach (var item in await _equipmentRepository.GetAllAsync())
-            EquipmentItems.Add(item);
+        try
+        {
+            var items = await _executor.ExecuteAsync<IEquipmentRepository, IReadOnlyList<Equipment>>(
+                r => r.GetAllAsync());
+            var students = await _executor.ExecuteAsync<IStudentRepository, IReadOnlyList<Student>>(
+                r => r.GetAllAsync());
 
-        Students.Clear();
-        foreach (var student in await _studentRepository.GetAllAsync())
-            Students.Add(student);
+            EquipmentItems.Clear();
+            foreach (var item in items)
+                EquipmentItems.Add(item);
+
+            Students.Clear();
+            foreach (var student in students)
+                Students.Add(student);
+        }
+        catch (Exception)
+        {
+            StatusMessage = "Could not load data from the database. Check the connection and try again.";
+        }
     }
 
     [RelayCommand]
     private async Task BorrowAsync()
     {
-        // --- Presentation validation: is the input even usable? ---
         if (SelectedStudent is null)
         {
             StatusMessage = "Please select a student.";
@@ -71,14 +73,31 @@ public partial class EquipmentViewModel : ObservableObject
             return;
         }
 
-        // --- Business decision: delegated entirely to the service. ---
-        var result = await _borrowEquipmentService.ExecuteAsync(
-            new BorrowEquipmentRequest(SelectedStudent.Id, SelectedEquipment.Id, ExpectedReturnDate.DateTime));
+        var request = new BorrowEquipmentRequest(
+            SelectedStudent.Id, SelectedEquipment.Id, ExpectedReturnDate.DateTime);
 
-        StatusMessage = result.Success
-            ? $"Borrowed successfully. Borrowing #{result.Borrowing!.Id} created."
-            : $"Could not borrow: {result.ErrorMessage}";
+        try
+        {
+            var result = await _executor.ExecuteAsync<BorrowEquipmentService, BorrowEquipmentResult>(
+                s => s.ExecuteAsync(request));
 
-        await LoadAsync(); // refresh the list so availability updates on screen
+            StatusMessage = result.Success
+                ? $"Borrowed successfully. Borrowing #{result.Borrowing!.Id} created."
+                : $"Could not borrow: {result.ErrorMessage}";
+        }
+        catch (CommitOutcomeUnknownException ex)
+        {
+            StatusMessage = ex.Message;
+        }
+        catch (PersistenceException ex)
+        {
+            StatusMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            StatusMessage = "Unexpected error. Nothing was confirmed; reload and check before retrying.";
+        }
+
+        await LoadAsync();
     }
 }

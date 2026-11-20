@@ -25,7 +25,8 @@ var borrowingRepository = new InMemoryBorrowingRepository();
 var service = new BorrowEquipmentService(
     studentRepository,
     equipmentRepository,
-    borrowingRepository);
+    borrowingRepository,
+    new InMemoryUnitOfWork());
 
 Console.WriteLine("=== Campus Equipment Borrowing System — Demonstration ===\n");
 
@@ -43,7 +44,7 @@ PrintResult(successResult);
 // NEW CASE: successful return of the equipment just borrowed
 // ---------------------------------------------------------------
 Console.WriteLine("\n--- Case 1b: Successful return ---");
-var returnService = new ReturnEquipmentService(borrowingRepository, equipmentRepository);
+var returnService = new ReturnEquipmentService(borrowingRepository, equipmentRepository, new InMemoryUnitOfWork());
 
 if (successResult.Borrowing is not null)
 {

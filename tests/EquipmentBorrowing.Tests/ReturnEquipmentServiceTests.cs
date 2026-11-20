@@ -24,12 +24,11 @@ public class ReturnEquipmentServiceTests
         // Use the real Borrow flow to set up a genuine active borrowing,
         // instead of hand-constructing one — this keeps the test honest
         // about how a Borrowing actually gets created.
-        var borrowService = new BorrowEquipmentService(studentRepository, equipmentRepository, borrowingRepository);
+        var borrowService = new BorrowEquipmentService(studentRepository, equipmentRepository, borrowingRepository, new InMemoryUnitOfWork());
         var borrowResult = await borrowService.ExecuteAsync(
             new BorrowEquipmentRequest(1, 100, DateTime.Now.AddDays(7)));
 
-        var returnService = new ReturnEquipmentService(borrowingRepository, equipmentRepository);
-
+        var returnService = new ReturnEquipmentService(borrowingRepository, equipmentRepository, new InMemoryUnitOfWork());
         return (returnService, borrowResult.Borrowing!);
     }
 

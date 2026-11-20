@@ -10,20 +10,33 @@ public class BorrowEquipmentService
     private readonly IStudentRepository _studentRepository;
     private readonly IEquipmentRepository _equipmentRepository;
     private readonly IBorrowingRepository _borrowingRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public BorrowEquipmentService(
         IStudentRepository studentRepository,
         IEquipmentRepository equipmentRepository,
-        IBorrowingRepository borrowingRepository)
+        IBorrowingRepository borrowingRepository,
+        IUnitOfWork unitOfWork)
     {
         _studentRepository = studentRepository;
         _equipmentRepository = equipmentRepository;
         _borrowingRepository = borrowingRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<BorrowEquipmentResult> ExecuteAsync(
+    public Task<BorrowEquipmentResult> ExecuteAsync(
         BorrowEquipmentRequest request,
         CancellationToken cancellationToken = default)
+    {
+        // Validation AND writes happen inside one transaction, so the rules are
+        // checked against current data at the transaction boundary (BR-15).
+        return _unitOfWork.ExecuteInTransactionAsync(
+            token => ExecuteCoreAsync(request, token), cancellationToken);
+    }
+
+    private async Task<BorrowEquipmentResult> ExecuteCoreAsync(
+        BorrowEquipmentRequest request,
+        CancellationToken cancellationToken)
     {
         var student = await _studentRepository.GetByIdAsync(request.StudentId, cancellationToken);
         if (student is null)

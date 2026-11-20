@@ -7,18 +7,29 @@ public class ReturnEquipmentService
 {
     private readonly IBorrowingRepository _borrowingRepository;
     private readonly IEquipmentRepository _equipmentRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public ReturnEquipmentService(
         IBorrowingRepository borrowingRepository,
-        IEquipmentRepository equipmentRepository)
+        IEquipmentRepository equipmentRepository,
+        IUnitOfWork unitOfWork)
     {
         _borrowingRepository = borrowingRepository;
         _equipmentRepository = equipmentRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<ReturnEquipmentResult> ExecuteAsync(
+    public Task<ReturnEquipmentResult> ExecuteAsync(
         ReturnEquipmentRequest request,
         CancellationToken cancellationToken = default)
+    {
+        return _unitOfWork.ExecuteInTransactionAsync(
+            token => ExecuteCoreAsync(request, token), cancellationToken);
+    }
+
+    private async Task<ReturnEquipmentResult> ExecuteCoreAsync(
+        ReturnEquipmentRequest request,
+        CancellationToken cancellationToken)
     {
         var borrowing = await _borrowingRepository.GetByIdAsync(request.BorrowingId, cancellationToken);
         if (borrowing is null)
