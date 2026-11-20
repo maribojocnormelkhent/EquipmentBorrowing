@@ -8,5 +8,12 @@ public interface IEquipmentRepository
 
     Task<IReadOnlyList<Equipment>> GetAllAsync(CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<Equipment>> SearchAsync(
+        string? searchText, bool availableOnly, CancellationToken cancellationToken = default);
+
+    Task<Equipment?> GetByIdentifierAsync(string identifier, CancellationToken cancellationToken = default);
+
+    Task AddAsync(Equipment equipment, CancellationToken cancellationToken = default);
+
     Task UpdateAsync(Equipment equipment, CancellationToken cancellationToken = default);
 }

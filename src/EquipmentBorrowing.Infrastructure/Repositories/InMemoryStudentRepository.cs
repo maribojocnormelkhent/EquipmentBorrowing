@@ -21,4 +21,40 @@ public class InMemoryStudentRepository : IStudentRepository
     {
         return Task.FromResult((IReadOnlyList<Student>)_students.ToList());
     }
+
+    public Task<IReadOnlyList<Student>> SearchAsync(string? searchText, CancellationToken cancellationToken = default)
+    {
+        IEnumerable<Student> query = _students;
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            var text = searchText.Trim();
+            query = query.Where(s =>
+                s.Name.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                s.StudentNumber.Contains(text, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return Task.FromResult((IReadOnlyList<Student>)query.OrderBy(s => s.Name).ToList());
+    }
+
+    public Task<Student?> GetByStudentNumberAsync(string studentNumber, CancellationToken cancellationToken = default)
+    {
+        var key = studentNumber.Trim();
+        return Task.FromResult(_students.FirstOrDefault(
+            s => string.Equals(s.StudentNumber, key, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    public Task AddAsync(Student student, CancellationToken cancellationToken = default)
+    {
+        _students.Add(student);
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateAsync(Student student, CancellationToken cancellationToken = default)
+    {
+        var index = _students.FindIndex(s => s.Id == student.Id);
+        if (index >= 0)
+            _students[index] = student;
+
+        return Task.CompletedTask;
+    }
 }

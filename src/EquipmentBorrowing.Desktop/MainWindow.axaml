@@ -5,7 +5,7 @@
         x:Class="EquipmentBorrowing.Desktop.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Campus Equipment Borrowing System"
-        Width="800" Height="500">
+        Width="1100" Height="650">
 
   <Window.DataTemplates>
     <DataTemplate DataType="vm:EquipmentViewModel">
@@ -14,13 +14,23 @@
     <DataTemplate DataType="vm:BorrowingsViewModel">
       <views:BorrowingsView/>
     </DataTemplate>
+    <DataTemplate DataType="vm:StudentsViewModel">
+      <views:StudentsView/>
+    </DataTemplate>
+    <DataTemplate DataType="vm:EquipmentManagementViewModel">
+      <views:EquipmentManagementView/>
+    </DataTemplate>
   </Window.DataTemplates>
 
-  <Grid ColumnDefinitions="180,*">
+  <Grid ColumnDefinitions="200,*">
     <StackPanel Grid.Column="0" Background="#222" Spacing="4" Margin="0">
-      <Button Content="Equipment" Command="{Binding ShowEquipmentCommand}"
+      <Button Content="Borrow Equipment" Command="{Binding ShowEquipmentCommand}"
               HorizontalAlignment="Stretch" Margin="8"/>
       <Button Content="Active Borrowings" Command="{Binding ShowBorrowingsCommand}"
+              HorizontalAlignment="Stretch" Margin="8"/>
+      <Button Content="Students" Command="{Binding ShowStudentsCommand}"
+              HorizontalAlignment="Stretch" Margin="8"/>
+      <Button Content="Manage Equipment" Command="{Binding ShowEquipmentManagementCommand}"
               HorizontalAlignment="Stretch" Margin="8"/>
     </StackPanel>
 

@@ -1,0 +1,56 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EquipmentBorrowing.Desktop.ViewModels"
+             x:Class="EquipmentBorrowing.Desktop.Views.StudentsView"
+             x:DataType="vm:StudentsViewModel">
+  <Grid ColumnDefinitions="*,340" Margin="16">
+    <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" Margin="0,0,16,0">
+      <TextBlock Grid.Row="0" Text="Students" FontSize="20" FontWeight="Bold" Margin="0,0,0,12"/>
+
+      <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+        <TextBox Text="{Binding SearchText}" Width="240"/>
+        <Button Content="Search" Command="{Binding SearchCommand}"/>
+        <Button Content="Clear" Command="{Binding ClearSearchCommand}"/>
+        <TextBlock Text="Loading..." IsVisible="{Binding IsBusy}" VerticalAlignment="Center"/>
+      </StackPanel>
+
+      <ListBox Grid.Row="2" ItemsSource="{Binding Students}" SelectedItem="{Binding SelectedStudent}">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <Border Padding="8" Margin="0,2" BorderThickness="1" BorderBrush="Gray" CornerRadius="4">
+              <StackPanel>
+                <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                <TextBlock Text="{Binding StudentNumber, StringFormat='Student number: {0}'}" FontSize="11"/>
+                <TextBlock Text="{Binding Contact, StringFormat='Contact: {0}'}" FontSize="11"/>
+                <TextBlock Text="{Binding IsAllowedToBorrow, StringFormat='Allowed to borrow: {0}'}" FontSize="11"/>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Grid>
+
+    <StackPanel Grid.Column="1" Spacing="6">
+      <TextBlock Text="Student details" FontWeight="Bold" FontSize="16"/>
+      <TextBlock Text="Student number"/>
+      <TextBox Text="{Binding EditStudentNumber}"/>
+      <TextBlock Text="Full name"/>
+      <TextBox Text="{Binding EditName}"/>
+      <TextBlock Text="Contact (optional)"/>
+      <TextBox Text="{Binding EditContact}"/>
+
+      <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+        <Button Content="Register New" Command="{Binding RegisterCommand}"/>
+        <Button Content="Save Changes" Command="{Binding SaveCommand}"/>
+        <Button Content="New / Clear" Command="{Binding NewStudentCommand}"/>
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Content="Permit Borrowing" Command="{Binding PermitCommand}"/>
+        <Button Content="Restrict Borrowing" Command="{Binding RestrictCommand}"/>
+      </StackPanel>
+
+      <TextBlock Text="{Binding StatusMessage}" Foreground="OrangeRed" TextWrapping="Wrap" Margin="0,8,0,0"/>
+    </StackPanel>
+  </Grid>
+</UserControl>

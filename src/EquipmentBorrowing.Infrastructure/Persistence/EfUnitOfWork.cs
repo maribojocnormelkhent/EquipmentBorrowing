@@ -35,6 +35,12 @@ public class EfUnitOfWork : IUnitOfWork
             {
                 result = await operation(cancellationToken);
             }
+            catch (DuplicateValueException)
+            {
+                await TryRollbackAsync(transaction);
+                _context.ChangeTracker.Clear();
+                throw;
+            }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 await TryRollbackAsync(transaction);

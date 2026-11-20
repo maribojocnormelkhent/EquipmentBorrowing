@@ -36,14 +36,12 @@ public partial class App : Avalonia.Application
             var services = new ServiceCollection();
             ConfigureServices(services, configuration);
 
-            // Scope validation catches lifetime mistakes (e.g. a singleton holding a DbContext).
             _serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
             {
                 ValidateScopes = true,
                 ValidateOnBuild = true
             });
 
-            // Migrations are applied explicitly (dotnet ef database update); only seed here.
             try
             {
                 using var scope = _serviceProvider.CreateScope();
@@ -55,10 +53,15 @@ public partial class App : Avalonia.Application
                 // Database unavailable at startup: the views report load errors and allow retry.
             }
 
+            var mainWindowViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
+
             desktop.MainWindow = new MainWindow
             {
-                DataContext = _serviceProvider.GetRequiredService<MainWindowViewModel>()
+                DataContext = mainWindowViewModel
             };
+
+            // Load the first screen's data on startup.
+            mainWindowViewModel.ShowEquipmentCommand.Execute(null);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -72,7 +75,6 @@ public partial class App : Avalonia.Application
                 "Set it with dotnet user-secrets or the ConnectionStrings__EquipmentBorrowing " +
                 "environment variable (see README).");
 
-        // Scoped: one DbContext per UI operation (see UseCaseExecutor).
         services.AddDbContext<EquipmentBorrowingDbContext>(options =>
             options.UseNpgsql(connectionString));
 
@@ -83,11 +85,15 @@ public partial class App : Avalonia.Application
 
         services.AddScoped<BorrowEquipmentService>();
         services.AddScoped<ReturnEquipmentService>();
+        services.AddScoped<StudentManagementService>();
+        services.AddScoped<EquipmentManagementService>();
 
         services.AddSingleton<IUseCaseExecutor, UseCaseExecutor>();
 
         services.AddTransient<EquipmentViewModel>();
         services.AddTransient<BorrowingsViewModel>();
+        services.AddTransient<StudentsViewModel>();
+        services.AddTransient<EquipmentManagementViewModel>();
         services.AddSingleton<MainWindowViewModel>();
     }
 }
