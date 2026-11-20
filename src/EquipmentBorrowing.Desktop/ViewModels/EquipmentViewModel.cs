@@ -5,8 +5,10 @@ using EquipmentBorrowing.Application.Interfaces;
 using EquipmentBorrowing.Application.Services;
 using EquipmentBorrowing.Domain;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EquipmentBorrowing.Desktop.ViewModels;
@@ -17,9 +19,6 @@ public partial class EquipmentViewModel : ObservableObject
 
     public ObservableCollection<Equipment> EquipmentItems { get; } = new();
     public ObservableCollection<Student> Students { get; } = new();
-
-    [ObservableProperty]
-    private Equipment? selectedEquipment;
 
     [ObservableProperty]
     private Student? selectedStudent;
@@ -51,6 +50,9 @@ public partial class EquipmentViewModel : ObservableObject
             Students.Clear();
             foreach (var student in students)
                 Students.Add(student);
+
+            if (items.Count == 0)
+                StatusMessage = "No equipment registered yet.";
         }
         catch (Exception)
         {
@@ -58,8 +60,9 @@ public partial class EquipmentViewModel : ObservableObject
         }
     }
 
+    // UC-03: exactly one selected item.
     [RelayCommand]
-    private async Task BorrowAsync()
+    private async Task BorrowAsync(IList? selectedItems)
     {
         if (SelectedStudent is null)
         {
@@ -67,23 +70,54 @@ public partial class EquipmentViewModel : ObservableObject
             return;
         }
 
-        if (SelectedEquipment is null)
+        var items = selectedItems?.Cast<Equipment>().ToList() ?? new List<Equipment>();
+        if (items.Count != 1)
         {
-            StatusMessage = "Please select a piece of equipment.";
+            StatusMessage = "Select exactly one item to borrow, or use 'Check Out Selected' for two or more.";
             return;
         }
 
         var request = new BorrowEquipmentRequest(
-            SelectedStudent.Id, SelectedEquipment.Id, ExpectedReturnDate.DateTime);
+            SelectedStudent.Id, items[0].Id, ExpectedReturnDate.DateTime);
 
-        try
+        await RunAsync(async () =>
         {
             var result = await _executor.ExecuteAsync<BorrowEquipmentService, BorrowEquipmentResult>(
                 s => s.ExecuteAsync(request));
 
-            StatusMessage = result.Success
+            return result.Success
                 ? $"Borrowed successfully. Borrowing #{result.Borrowing!.Id} created."
                 : $"Could not borrow: {result.ErrorMessage}";
+        });
+    }
+
+    // UC-06: two or more selected items, committed together or not at all.
+    [RelayCommand]
+    private async Task CheckOutSelectedAsync(IList? selectedItems)
+    {
+        if (SelectedStudent is null)
+        {
+            StatusMessage = "Please select a student.";
+            return;
+        }
+
+        var ids = selectedItems?.Cast<Equipment>().Select(e => e.Id).ToList() ?? new List<int>();
+        var request = new CheckOutMultipleRequest(SelectedStudent.Id, ids, ExpectedReturnDate.DateTime);
+
+        await RunAsync(async () =>
+        {
+            var result = await _executor.ExecuteAsync<CheckOutMultipleService, OperationResult<IReadOnlyList<Borrowing>>>(
+                s => s.ExecuteAsync(request));
+
+            return result.Success ? result.Message : $"Could not check out: {result.Message}";
+        });
+    }
+
+    private async Task RunAsync(Func<Task<string>> operation)
+    {
+        try
+        {
+            StatusMessage = await operation();
         }
         catch (CommitOutcomeUnknownException ex)
         {

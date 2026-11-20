@@ -17,7 +17,7 @@ public class EfBorrowingRepository : IBorrowingRepository
     public async Task AddAsync(Borrowing borrowing, CancellationToken cancellationToken = default)
     {
         await _context.Borrowings.AddAsync(borrowing, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveChangesHelper.SaveAsync(_context, cancellationToken);
     }
 
     public async Task<int> GetActiveBorrowingCountForStudentAsync(
@@ -37,7 +37,7 @@ public class EfBorrowingRepository : IBorrowingRepository
     public async Task UpdateAsync(Borrowing borrowing, CancellationToken cancellationToken = default)
     {
         _context.Borrowings.Update(borrowing);
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveChangesHelper.SaveAsync(_context, cancellationToken);
     }
 
     public async Task<IReadOnlyList<Borrowing>> GetActiveBorrowingsAsync(CancellationToken cancellationToken = default)

@@ -88,6 +88,9 @@ public partial class App : Avalonia.Application
         services.AddScoped<StudentManagementService>();
         services.AddScoped<EquipmentManagementService>();
 
+        services.AddScoped<CheckOutMultipleService>();
+        services.AddSingleton<IFaultInjector, EnvironmentFaultInjector>();
+
         services.AddSingleton<IUseCaseExecutor, UseCaseExecutor>();
 
         services.AddTransient<EquipmentViewModel>();

@@ -1,5 +1,6 @@
 using EquipmentBorrowing.Application.Interfaces;
 using EquipmentBorrowing.Domain;
+using EquipmentBorrowing.Application.Exceptions;
 
 namespace EquipmentBorrowing.Application.Services;
 
@@ -24,14 +25,20 @@ public class BorrowEquipmentService
         _unitOfWork = unitOfWork;
     }
 
-    public Task<BorrowEquipmentResult> ExecuteAsync(
-        BorrowEquipmentRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<BorrowEquipmentResult> ExecuteAsync(
+    BorrowEquipmentRequest request,
+    CancellationToken cancellationToken = default)
     {
-        // Validation AND writes happen inside one transaction, so the rules are
-        // checked against current data at the transaction boundary (BR-15).
-        return _unitOfWork.ExecuteInTransactionAsync(
-            token => ExecuteCoreAsync(request, token), cancellationToken);
+        try
+        {
+            return await _unitOfWork.ExecuteInTransactionAsync(
+                token => ExecuteCoreAsync(request, token), cancellationToken);
+        }
+        catch (DuplicateValueException)
+        {
+            return BorrowEquipmentResult.Fail(
+                "This item was just borrowed by another operation. Nothing was saved. Reload and try again.");
+        }
     }
 
     private async Task<BorrowEquipmentResult> ExecuteCoreAsync(

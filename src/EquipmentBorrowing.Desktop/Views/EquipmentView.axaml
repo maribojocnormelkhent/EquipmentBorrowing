@@ -4,23 +4,17 @@
              x:Class="EquipmentBorrowing.Desktop.Views.EquipmentView"
              x:DataType="vm:EquipmentViewModel">
   <Grid RowDefinitions="Auto,*,Auto" Margin="16">
-    <TextBlock Grid.Row="0" Text="Equipment" FontSize="20" FontWeight="Bold" Margin="0,0,0,12"/>
+    <TextBlock Grid.Row="0" Text="Borrow Equipment" FontSize="20" FontWeight="Bold" Margin="0,0,0,12"/>
 
-    <ListBox Grid.Row="1" ItemsSource="{Binding EquipmentItems}"
-             SelectedItem="{Binding SelectedEquipment}">
+    <ListBox x:Name="EquipmentList" Grid.Row="1" ItemsSource="{Binding EquipmentItems}"
+             SelectionMode="Multiple,Toggle">
       <ListBox.ItemTemplate>
         <DataTemplate>
           <Border Padding="8" Margin="0,2" BorderThickness="1" BorderBrush="Gray" CornerRadius="4">
             <StackPanel>
               <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
               <TextBlock Text="{Binding Identifier, StringFormat='ID: {0}'}" FontSize="11"/>
-              <TextBlock FontSize="11">
-                <TextBlock.Text>
-                  <MultiBinding StringFormat="Status: {0}">
-                    <Binding Path="IsAvailable"/>
-                  </MultiBinding>
-                </TextBlock.Text>
-              </TextBlock>
+              <TextBlock Text="{Binding IsAvailable, StringFormat='Available: {0}'}" FontSize="11"/>
             </StackPanel>
           </Border>
         </DataTemplate>
@@ -28,6 +22,9 @@
     </ListBox>
 
     <StackPanel Grid.Row="2" Margin="0,12,0,0" Spacing="8">
+      <TextBlock Text="Click items to select or deselect them (select 2 or more for a multi-item checkout)."
+                 FontSize="11"/>
+
       <ComboBox ItemsSource="{Binding Students}" SelectedItem="{Binding SelectedStudent}"
                 PlaceholderText="Select student">
         <ComboBox.ItemTemplate>
@@ -39,8 +36,12 @@
 
       <DatePicker SelectedDate="{Binding ExpectedReturnDate}"/>
 
-      <Button Content="Borrow Equipment" Command="{Binding BorrowCommand}"
-              HorizontalAlignment="Left"/>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Content="Borrow One Item" Command="{Binding BorrowCommand}"
+                CommandParameter="{Binding #EquipmentList.SelectedItems}"/>
+        <Button Content="Check Out Selected (2+)" Command="{Binding CheckOutSelectedCommand}"
+                CommandParameter="{Binding #EquipmentList.SelectedItems}"/>
+      </StackPanel>
 
       <TextBlock Text="{Binding StatusMessage}" Foreground="OrangeRed" TextWrapping="Wrap"/>
     </StackPanel>
